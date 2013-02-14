@@ -22,13 +22,17 @@ typedef vector<int> vi;
 
 const int xSize = 900;
 const int ySize = 600;
-const short RADIUS = 10;
+const short RADIUS = 8;
 
 int K;
-double t = 2;
+float t = 2;
 
 
 //mouse
+bool mouseMove = false;
+
+
+bool mouseRightUp = false;
 bool mouseLeftDown = false;
 bool mouseRightDown = false;
 
@@ -44,14 +48,17 @@ float moveY = 0;
 float Zoom = 0;
 
 int dragNode = -1;
+int firstNode = -1;
 //global graph
 Graph g;
 
 
-double Fa (const double& d) {
+void refresh(int value);
+
+float Fa (const float& d) {
 	return d*d/K;
 }
-double Fr (const double& d) {
+float Fr (const float& d) {
 	return (K*K)/d;
 }
 
@@ -65,14 +72,38 @@ double Fr (const double& d) {
 //****** OPEN GL ******
 //*********************
 
+void insert(vector<int> &v, const int& i, const int& k) {
+	v.resize(v.size() + 1);
+	for(int j = v.size(); j > i; --j){
+    	v[j] = v[j - 1];
+	}
+	v[i] = k;
+}
+
+
 //Called when a key is pressed
-void handleKeypress(unsigned char key, int x, int y) {    //The current mouse coordinates
+void handleKeypress(unsigned char key, int x, int y) {    
 	switch (key) {
     case 27: exit(0); break;
-
-    	default: cout << "Mouse position: " << x << " | " << y << endl; break;
+    case 's': t = 0; break;
+    case 'a': t += 2; break;
+    case 'd': t = max(0.0f, t-2); break;
   }
 }
+
+
+int nearestNode(const Vec& pos, const Graph& g) {
+	float dist = (pos - g.pos[0]).module();
+	int min = 0;
+	for (int i = 0; i < g.nodes; ++i) {
+		if ( (pos - g.pos[i]).module() < dist) {
+			dist = (pos - g.pos[i]).module();
+			min = i;
+		}
+	}
+	return min;
+}
+
 
 void mouseCB(int button, int state, int x, int y)
 {
@@ -81,16 +112,19 @@ void mouseCB(int button, int state, int x, int y)
     mouseY = y;
 
     mouseLeftDown = (button == GLUT_LEFT_BUTTON and state == GLUT_DOWN);
-    mouseRightDown = (button == GLUT_RIGHT_BUTTON and state == GLUT_DOWN);
+    mouseRightUp = (button == GLUT_RIGHT_BUTTON and state == GLUT_UP);
+    mouseRightDown = (button = GLUT_RIGHT_BUTTON and state == GLUT_DOWN);
 
     //get node
-    if(mouseLeftDown) {
+    if(mouseLeftDown and dragNode < 0) {
     	int i = 0;
     	bool found = false;
+    	Vec mousePos = Vec(x, y) - Vec(posX, posY);
     	while (i < g.nodes and !found) {
     		//cout << "Node: " << i << endl <<
     		//"Dist: " << (Vec(x, y) - g.pos[i]).module() << endl;
-    		if ( (Vec(x, y) - g.pos[i]).module() < RADIUS ) {
+
+    		if (( mousePos - g.pos[i]).module() < RADIUS + 8 ) {
     			dragNode = i;
     			found = true;
     		}
@@ -99,32 +133,84 @@ void mouseCB(int button, int state, int x, int y)
     	
     }
     else dragNode = -1;
-    if(button == 3) Zoom += 0.5;
-    else if(button == 4) Zoom -= 0.5;
 
 
+    if(mouseRightDown) {
+    	firstNode = nearestNode(Vec(x, y), g);
+    }
+
+    if(mouseRightUp) {
+    	if (!mouseMove) {
+    	Vec mousePos = Vec(x, y) - Vec(posX, posY);
+    	//add the node
+
+    	//# nodes
+    	g.ind.push_back(g.ind[g.nodes]);
+    	++g.nodes;
+    	//pos
+    	g.pos.push_back(mousePos);
+    	//disp
+    	g.disp.push_back(Vec(0,0));
+    	g.degree.push_back(0);
+
+    	} 
+    	//Unir arestes
+    	else {
+    		int second = nearestNode(Vec(x, y), g);
+    		if (firstNode != second) {
+	    		int first = min(firstNode, second);
+	    		second = max(firstNode, second);
+	    		++g.edges;
+	    		++g.degree[first];
+	    		++g.degree[second];
+	    		insert(g.adj, g.ind[second], first);
+	    		insert(g.adj, g.ind[first], second);
+	    		
+	    		for (int i = first+1; i <= g.nodes; ++i) {
+	    			++g.ind[i];
+	    		}
+	    		for (int i = second+1; i <= g.nodes; ++i) {
+	    			++g.ind[i];
+	    		}
+	    	}
+    		mouseMove = false;
+
+    	}
+
+		firstNode = -1;
+
+    }
+    //if(button == 3) Zoom += 0.5;
+    //else if(button == 4) Zoom -= 0.5;
 	glutPostRedisplay();	
-	
 }
 
 void mouseMotionCB(int x, int y)
 {
 	
-    if(mouseLeftDown and dragNode >= 0)
-    {
-        moveX = (x - mouseX)*5;
-        moveY = (y - mouseY)*5;
-        mouseX = x;
-        mouseY = y;
+    if(mouseLeftDown) {
+    	if (dragNode >= 0) {
+	        moveX = (x - mouseX)*2.5;
+	        moveY = (y - mouseY)*2.5;
+	        mouseX = x;
+	        mouseY = y;
+    	}
+    	/*
+    	else {
+	    	posX += (x - mouseX);
+	    	posY += (y - mouseY);
+	    	mouseX = x;
+	    	mouseY = y;
+    	}
+    	*/
     	glutPostRedisplay();
-
     }
     else if(mouseRightDown)
     {
-    	posX += (x - mouseX);
-    	posY += (y - mouseY);
-    	mouseX = x;
-    	mouseY = y;
+    	if ((x - mouseX != 0 or y - mouseY != 0 ) and !mouseMove) {
+    		mouseMove = true;
+    		cout << "Mouse move detected!!" << endl;
+    	}
     	glutPostRedisplay();
     }
     
@@ -186,7 +272,7 @@ void drawGraph(const Graph& g) {
 	//arestes
 	glBegin(GL_LINES);
 	glColor3f(0.5f, 0.5f, 0.5f);
-	double x, y;
+	float x, y;
 	int k;
 	for (int i = 0; i < g.nodes; ++i) {
 		x = g.pos[i].getX();
@@ -228,7 +314,6 @@ void drawScene() {
 //*******************************
 //********** UPDATE *************
 //*******************************
-
 void update(int value) {
 	//repulsion
 	for (int i = 0; i < g.nodes; ++i) {
@@ -236,7 +321,7 @@ void update(int value) {
 		for (int j = 0; j < g.nodes; ++j) {
 			if (i != j) {
 				Vec dif = g.pos[i] - g.pos[j];
-				double m = dif.module();
+				float m = dif.module();
 				if (m != 0) {
 					g.disp[i] = g.disp[i] + dif.unit()*Fr(m);
 				}
@@ -247,19 +332,27 @@ void update(int value) {
 	for (int i = 0; i < g.nodes; ++i) {
 		for (int j = g.ind[i]; j < g.ind[i+1]; ++j) {
 			Vec dif = g.pos[i] - g.pos[g.adj[j]];
-			double m = dif.module();
+			float m = dif.module();
 			if (m != 0) {
 				g.disp[i] = g.disp[i] - dif.unit()*Fa(m);
 			}
 		}
 	}
+
+	//Walls
+	/*
+	for (int i = 0; i < g.nodes; ++i) {
+
+	}
+	*/
+
 	//temperature
 	for (int i = 0; i < g.nodes; ++i) {
 		if (i == dragNode) {
 			g.pos[i] = g.pos[i] + Vec(moveX, moveY);
 		}
 		else {
-			double m = g.disp[i].module();
+			float m = g.disp[i].module();
 			if (m != 0) {
 				if ( m < t) {
 					g.pos[i] = g.pos[i] + g.disp[i];
@@ -271,15 +364,30 @@ void update(int value) {
 		}
 	}
 
-	//t *= 0.99;
-	//cout << "T: " << t << endl;
+	t *= 0.99;
+//	cout << "T: " << t << endl;
 
+	//Fix to walls!
+	for (int i = 0; i < g.nodes; ++i) {
+	g.pos[i].set(min(float(xSize - RADIUS), max(float(RADIUS), g.pos[i].getX())), min(float(ySize - RADIUS), max(float(RADIUS), g.pos[i].getY())));
+	}
 
 	glutPostRedisplay();
-	if (t > 0.1) glutTimerFunc(25, update, 0);
+	if (t > 0.06)  glutTimerFunc(25, update, 0);
+	else {
+		t = 0;
+	 refresh(0);
+	}
+}
+
+
+void refresh(int value) {
+	g.pos[dragNode] = g.pos[dragNode] + Vec(moveX, moveY);
+	glutPostRedisplay();
+	if (t > 0) update(0);
+	else glutTimerFunc(50, refresh, 0);
 }
 //Fix position
-		//g.pos[i].x = min(xSize - RADIUS, max(0+RADIUS, g.pos[i].x));
 		//g.pos[i].y = min(ySize - RADIUS, max(0+RADIUS, g.pos[i].y));
 
 //*******************************
@@ -293,7 +401,7 @@ int main(int argc, char** argv) {
 	initGraph(g);
 
 	//Initialize K
-	K = 0.3*sqrt((xSize*ySize)/g.nodes);
+	K = 0.5*sqrt((xSize*ySize)/g.nodes);
 	cout << "K: " << K << endl;
 
 	setNodesPosition(g, xSize, ySize);
