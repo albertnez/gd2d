@@ -365,7 +365,7 @@ void update(int value) {
 	}
 
 	t *= 0.99;
-//	cout << "T: " << t << endl;
+	cout << "T: " << t << endl;
 
 	//Fix to walls!
 	for (int i = 0; i < g.nodes; ++i) {

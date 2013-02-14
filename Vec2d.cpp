@@ -8,23 +8,23 @@ Vec::Vec() {
 	x = y = 0;
 }
 
-Vec::Vec(const double& xIni, const double& yIni) {
+Vec::Vec(const float& xIni, const float& yIni) {
 	x = xIni;
 	y = yIni;
 }
 
 //set
-void Vec::setX(const double xVal) { x = xVal; }
-void Vec::setY(const double yVal) { y = yVal; }
+void Vec::setX(const float xVal) { x = xVal; }
+void Vec::setY(const float yVal) { y = yVal; }
 
-void Vec::set(const double xVal, const double yVal) {
+void Vec::set(const float xVal, const float yVal) {
 	x = xVal;
 	y = yVal;
 }
 
 //get
-double Vec::getX() const { return x; }
-double Vec::getY() const { return y; }
+float Vec::getX() const { return x; }
+float Vec::getY() const { return y; }
 
 //operators
 Vec Vec::operator+(const Vec& v) const {
@@ -33,20 +33,20 @@ Vec Vec::operator+(const Vec& v) const {
 Vec Vec::operator-(const Vec& v) const {
 	return Vec(x - v.getX(), y - v.getY());
 }
-Vec Vec::operator*(const double& k) const {
+Vec Vec::operator*(const float& k) const {
 	return Vec(x * k, y * k);
 }
-Vec Vec::operator/(const double& k) const {
+Vec Vec::operator/(const float& k) const {
 	return Vec(x / k, y / k);
 }
 
 //vec atributes
-double Vec::module() { 
+float Vec::module() { 
 	return sqrt(x*x + y*y);
 	}
 
 Vec Vec::unit() {
-	double m = sqrt(x*x + y*y);
+	float m = sqrt(x*x + y*y);
 	return Vec(x/m, y/m);
 }
 

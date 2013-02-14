@@ -45,3 +45,29 @@ void setNodesPosition(Graph& g, const int& xMargin, const int& yMargin) {
 		g.pos[i] = Vec(rand()%xMargin, rand()%yMargin);
 	}
 }
+/**
+
+void insert(vector<int> &v, const int& i, const int& k) {
+	v.resize(v.size() + 1);
+	for(int j = v.size(); j > i; --j){
+    	v[j] = v[j - 1];
+	}
+	v[i] = k;
+}
+
+void addEdge(Graph& g, const int& a, const int& b) {
+	++g.edges;
+	++g.degree[a];
+	++g.degree[b];
+	cout << "ind a: " << g.ind[a] << endl << "ind b: " << g.ind[b] << endl;
+	insert(g.adj, g.ind[b], a);
+	insert(g.adj, g.ind[a], b);
+
+	for (int i = a+1; i <= g.nodes; ++i) {
+		++g.ind[i];
+	}
+	for (int i = b+1; i <= g.nodes; ++i) {
+		++g.ind[i];
+		}
+}
+*/

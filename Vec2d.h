@@ -3,26 +3,26 @@
 
 class Vec {
 private:
-	double x, y;
+	float x, y;
 public:
 	Vec();
-	Vec(const double& xVal, const double& yVal);
+	Vec(const float& xVal, const float& yVal);
 
-	double getX() const;
-	double getY() const;
+	float getX() const;
+	float getY() const;
 
-	void setX(const double xVal);
-	void setY(const double yVal);
+	void setX(const float xVal);
+	void setY(const float yVal);
 
-	void set(const double xVal, const double yVal);
+	void set(const float xVal, const float yVal);
 
 	Vec operator+(const Vec& v) const;
 	Vec operator-(const Vec& v) const;
 
-	Vec operator*(const double& k) const;
-	Vec operator/(const double& k) const;
+	Vec operator*(const float& k) const;
+	Vec operator/(const float& k) const;
 
-	double module();
+	float module();
 
 	Vec unit();
 
