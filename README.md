@@ -1,4 +1,4 @@
-Graph drawing using attraction and repulsive forces between nodes.
+Graph drawing using attraction and repulsive forces.
 
 All nodes are repelled by other nodes. And nodes conected with edges are attracted.
 
