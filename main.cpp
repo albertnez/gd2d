@@ -25,7 +25,7 @@ const int ySize = 600;
 const short RADIUS = 8;
 
 int K;
-float t = 2;
+float t = 15;
 
 
 //mouse
@@ -63,6 +63,26 @@ float Fr (const float& d) {
 }
 
 
+void exportGraph (const Graph &g) {
+	cout << g.nodes << endl;
+	cout << g.edges << endl;
+	for (int i = 0; i < g.nodes; ++i) {
+		if (i > 0) cout << " ";
+		cout << g.degree[i];
+	}
+	cout << endl;
+	for (int i = 0; i < 2 * g.edges + 1; ++i) {
+		if (i > 0) cout << " ";
+		cout << g.adj[i];
+	}
+	cout << endl;
+	for (int i = 0; i < g.nodes +1; ++i) {
+		if (i > 0) cout << " ";
+		cout << g.ind[i];
+	}
+	cout << endl;
+}
+	
 
 //*******************************
 //******* END FORCE FUNCTIONS ***
@@ -88,6 +108,7 @@ void handleKeypress(unsigned char key, int x, int y) {
     case 's': t = 0; break;
     case 'a': t += 2; break;
     case 'd': t = max(0.0f, t-2); break;
+    case 'e': exportGraph(g); break;
   }
 }
 
@@ -209,7 +230,6 @@ void mouseMotionCB(int x, int y)
     {
     	if ((x - mouseX != 0 or y - mouseY != 0 ) and !mouseMove) {
     		mouseMove = true;
-    		cout << "Mouse move detected!!" << endl;
     	}
     	glutPostRedisplay();
     }
@@ -365,11 +385,13 @@ void update(int value) {
 	}
 
 	t *= 0.99;
-	cout << "T: " << t << endl;
 
 	//Fix to walls!
 	for (int i = 0; i < g.nodes; ++i) {
-	g.pos[i].set(min(float(xSize - RADIUS), max(float(RADIUS), g.pos[i].getX())), min(float(ySize - RADIUS), max(float(RADIUS), g.pos[i].getY())));
+	g.pos[i].set (
+		min(float(xSize - RADIUS), max(float(RADIUS), g.pos[i].getX())) ,
+		min(float(ySize - RADIUS), max(float(RADIUS), g.pos[i].getY()))
+		);
 	}
 
 	glutPostRedisplay();
@@ -402,7 +424,6 @@ int main(int argc, char** argv) {
 
 	//Initialize K
 	K = 0.5*sqrt((xSize*ySize)/g.nodes);
-	cout << "K: " << K << endl;
 
 	setNodesPosition(g, xSize, ySize);
 
